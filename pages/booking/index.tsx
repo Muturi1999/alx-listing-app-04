@@ -1,25 +1,66 @@
-// pages/booking/index.tsx
+import axios from "axios";
+import { useState } from "react";
 
-import BookingForm from "@/components/booking/BookingForm";
-import OrderSummary from "@/components/booking/OrderSummary";
-import CancellationPolicy from "@/components/booking/CancellationPolicy";
+export default function BookingForm() {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    cardNumber: "",
+    expirationDate: "",
+    cvv: "",
+    billingAddress: "",
+  });
 
-export default function BookingPage() {
-  const bookingDetails = {
-    propertyName: "Villa Arrecife Beach House",
-    price: 7500,
-    bookingFee: 65,
-    totalNights: 3,
-    startDate: "24 August 2024",
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      await axios.post("/api/bookings", formData);
+      alert("Booking confirmed!");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      setError("Failed to submit booking.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <BookingForm />
-        <OrderSummary bookingDetails={bookingDetails} />
-      </div>
-      <CancellationPolicy />
+    <div className="max-w-xl mx-auto p-6">
+      <h2 className="text-2xl font-bold mb-4">Confirm Booking</h2>
+      <form onSubmit={handleSubmit} className="grid gap-4">
+        {Object.entries(formData).map(([key, value]) => (
+          <input
+            key={key}
+            name={key}
+            value={value}
+            onChange={handleChange}
+            placeholder={key.replace(/([A-Z])/g, " $1")}
+            className="border p-2 rounded"
+            required
+          />
+        ))}
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+        >
+          {loading ? "Processing..." : "Confirm & Pay"}
+        </button>
+        {error && <p className="text-red-500">{error}</p>}
+      </form>
     </div>
   );
 }
